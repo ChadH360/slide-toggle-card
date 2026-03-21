@@ -1,0 +1,22 @@
+{
+  "name": "slide-toggle-card",
+  "version": "0.4.0",
+  "description": "A bidirectional slide-to-confirm toggle card for Home Assistant with entity state tracking",
+  "main": "dist/slide-toggle-card.js",
+  "keywords": [
+    "home-assistant",
+    "homeassistant",
+    "hacs",
+    "lovelace",
+    "custom-card",
+    "slide",
+    "toggle",
+    "confirm"
+  ],
+  "author": "ChadH360",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ChadH360/slide-toggle"
+  }
+}
