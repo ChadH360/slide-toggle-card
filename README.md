@@ -10,18 +10,9 @@ Inspired by the original [slide-confirm](https://github.com/itsbrianburton/slide
 - **Entity state tracking** — the slider position automatically reflects the real state of your entity
 - **Unknown state handling** — configurable behaviour when the entity state doesn't match either expected state (useful for devices that don't report position, like some garage shutters)
 - **Intent requirement** — must slide 75% of the way to trigger (prevents accidental activation)
-- **Two layouts** — horizontal or vertical
+- **Two layouts** — horizontal (name + slider stacked) or vertical (icon, name, slider)
 - **State-aware icons** — the header icon changes to match the current state and turns blue when active
-- **Multiple sliders** — define as many sliders as you need on a single card
-- **Visual config editor** — configure everything through the HA GUI with native entity and icon pickers
-
-### Vertical Layout
-
-The vertical layout places the icon on top, the name below it, and the slider at the bottom. The header icon reflects the current state: grey when in the left state, blue when in the right state.
-
-### Horizontal Layout
-
-The horizontal layout places the icon and name side by side as a header, with the slider below.
+- **Native visual editor** — configure everything through the HA GUI with entity pickers, icon pickers, and all options
 
 ## Installation
 
@@ -31,7 +22,7 @@ The horizontal layout places the icon and name side by side as a header, with th
 2. Click the three dots in the top right → **Custom repositories**
 3. Add this repository URL, select **Dashboard** as the category
 4. Click **Add**, then find "Slide Toggle Card" and install it
-5. Refresh your browser (Ctrl+Shift+R)
+5. Refresh your browser
 
 ### Manual
 
@@ -46,28 +37,44 @@ The horizontal layout places the icon and name side by side as a header, with th
 
 ### Visual Editor
 
-Edit your dashboard, click **Add Card**, search for **Slide Toggle Card** and configure everything through the GUI — entity pickers, icon pickers, and all options are available. No YAML needed.
+Edit your dashboard, click **Add Card**, search for **Slide Toggle Card** and configure everything through the GUI. All fields have native HA pickers — no YAML needed.
 
 ### YAML Configuration
 
-If you prefer YAML, click "Add Card" → "Manual" and use the examples below.
+If you prefer YAML, click "Add Card" → "Manual":
 
-### Card Options
+```yaml
+type: custom:slide-toggle-card
+name: Kitchen Light
+icon: mdi:lightbulb
+target_entity: light.kitchen
+layout: vertical
+left_state: "off"
+right_state: "on"
+left_text: Slide to turn on
+right_text: Slide to turn off
+unknown_left_text: "<< Turn Off"
+unknown_right_text: "Turn On >>"
+left_icon: mdi:lightbulb-off
+right_icon: mdi:lightbulb-on
+unknown_icon: mdi:lightbulb-question
+unknown_state: disabled
+slide_right_service: light.turn_on
+slide_right_entity: light.kitchen
+slide_left_service: light.turn_off
+slide_left_entity: light.kitchen
+```
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `layout` | string | `horizontal` | `horizontal` or `vertical` |
-| `sliders` | list | **Required** | List of slider configurations |
-
-### Slider Options
+### Configuration Reference
 
 | Option | Type | Required | Default | Description |
 |--------|------|----------|---------|-------------|
 | `name` | string | No | — | Label shown above the slider |
 | `icon` | string | No | — | MDI icon shown in the header |
 | `target_entity` | string | **Yes** | — | Entity ID to track state |
-| `left_state` | string | **Yes** | — | Entity state value for left position (e.g. `off`, `locked`, `closed`) |
-| `right_state` | string | **Yes** | — | Entity state value for right position (e.g. `on`, `unlocked`, `open`) |
+| `layout` | string | No | `horizontal` | `horizontal` or `vertical` |
+| `left_state` | string | **Yes** | — | Entity state for left position (e.g. `off`, `locked`, `closed`) |
+| `right_state` | string | **Yes** | — | Entity state for right position (e.g. `on`, `unlocked`, `open`) |
 | `left_text` | string | **Yes** | — | Text when entity is in left state |
 | `right_text` | string | **Yes** | — | Text when entity is in right state |
 | `unknown_left_text` | string | No | `Unknown` | Text shown left of knob when state is unknown |
@@ -75,81 +82,37 @@ If you prefer YAML, click "Add Card" → "Manual" and use the examples below.
 | `left_icon` | string | No | `mdi:lock` | Knob icon when in left state |
 | `right_icon` | string | No | `mdi:lock-open` | Knob icon when in right state |
 | `unknown_icon` | string | No | `mdi:help-circle` | Knob icon when state is unknown |
-| `slide_right_action` | object | **Yes** | — | Action when sliding left→right |
-| `slide_left_action` | object | **Yes** | — | Action when sliding right→left |
 | `unknown_state` | string | No | `disabled` | `enabled` or `disabled` |
-
-### Action Object
-
-| Option | Type | Required | Description |
-|--------|------|----------|-------------|
-| `action` | string | Yes | Must be `call-service` |
-| `service` | string | Yes | Service to call (e.g. `lock.lock`) |
-| `target` | object | No | Target entity/device/area |
-| `data` | object | No | Additional service data |
+| `slide_right_service` | string | **Yes** | — | Service to call when sliding right (e.g. `light.turn_on`) |
+| `slide_right_entity` | string | No | — | Target entity for the right slide action |
+| `slide_right_data` | string | No | — | JSON service data for right slide (e.g. `{"option": "Heat"}`) |
+| `slide_left_service` | string | **Yes** | — | Service to call when sliding left (e.g. `light.turn_off`) |
+| `slide_left_entity` | string | No | — | Target entity for the left slide action |
+| `slide_left_data` | string | No | — | JSON service data for left slide (e.g. `{"option": "Cool"}`) |
 
 ## Examples
 
-### Lock (Vertical Layout)
+### Lock
 
 ```yaml
 type: custom:slide-toggle-card
+name: Front Door
+icon: mdi:door
+target_entity: lock.front_door
 layout: vertical
-sliders:
-  - name: Front Door
-    icon: mdi:door
-    target_entity: lock.front_door
-    left_state: locked
-    right_state: unlocked
-    left_text: Slide to Unlock
-    right_text: Slide to Lock
-    unknown_left_text: Lock Unavailable
-    unknown_right_text: ""
-    left_icon: mdi:lock
-    right_icon: mdi:lock-open
-    unknown_icon: mdi:help-circle
-    slide_right_action:
-      action: call-service
-      service: lock.unlock
-      target:
-        entity_id: lock.front_door
-    slide_left_action:
-      action: call-service
-      service: lock.lock
-      target:
-        entity_id: lock.front_door
-    unknown_state: disabled
-```
-
-### Light Toggle
-
-```yaml
-type: custom:slide-toggle-card
-layout: vertical
-sliders:
-  - name: Kitchen Light
-    icon: mdi:lightbulb
-    target_entity: light.kitchen
-    left_state: "off"
-    right_state: "on"
-    left_text: Slide to turn on
-    right_text: Slide to turn off
-    unknown_left_text: "<< Turn Off"
-    unknown_right_text: "Turn On >>"
-    left_icon: mdi:lightbulb-off
-    right_icon: mdi:lightbulb-on
-    unknown_icon: mdi:lightbulb-question
-    slide_right_action:
-      action: call-service
-      service: light.turn_on
-      target:
-        entity_id: light.kitchen
-    slide_left_action:
-      action: call-service
-      service: light.turn_off
-      target:
-        entity_id: light.kitchen
-    unknown_state: disabled
+left_state: locked
+right_state: unlocked
+left_text: Slide to Unlock
+right_text: Slide to Lock
+unknown_left_text: Lock Unavailable
+left_icon: mdi:lock
+right_icon: mdi:lock-open
+unknown_icon: mdi:help-circle
+unknown_state: disabled
+slide_right_service: lock.unlock
+slide_right_entity: lock.front_door
+slide_left_service: lock.lock
+slide_left_entity: lock.front_door
 ```
 
 ### Garage Shutter (Unknown State Enabled)
@@ -158,89 +121,69 @@ For devices that don't report position (e.g. Somfy shutters), set `unknown_state
 
 ```yaml
 type: custom:slide-toggle-card
+name: Garage Shutter
+icon: mdi:garage-variant
+target_entity: cover.garage_shutter
 layout: vertical
-sliders:
-  - name: Garage Shutter
-    icon: mdi:garage-variant
-    target_entity: cover.garage_shutter
-    left_state: closed
-    right_state: open
-    left_text: Slide to Open
-    right_text: Slide to Close
-    unknown_left_text: "<< Close"
-    unknown_right_text: "Open >>"
-    left_icon: mdi:garage
-    right_icon: mdi:garage-open
-    unknown_icon: mdi:garage-alert
-    slide_right_action:
-      action: call-service
-      service: cover.open_cover
-      target:
-        entity_id: cover.garage_shutter
-    slide_left_action:
-      action: call-service
-      service: cover.close_cover
-      target:
-        entity_id: cover.garage_shutter
-    unknown_state: enabled
+left_state: closed
+right_state: open
+left_text: Slide to Open
+right_text: Slide to Close
+unknown_left_text: "<< Close"
+unknown_right_text: "Open >>"
+left_icon: mdi:garage
+right_icon: mdi:garage-open
+unknown_icon: mdi:garage-alert
+unknown_state: enabled
+slide_right_service: cover.open_cover
+slide_right_entity: cover.garage_shutter
+slide_left_service: cover.close_cover
+slide_left_entity: cover.garage_shutter
 ```
 
-### Multiple Sliders (Horizontal Layout)
+### Select Option (e.g. Heating Mode)
+
+Use `slide_right_data` and `slide_left_data` to pass additional service data. This is useful for services like `select.select_option` that need an `option` parameter.
 
 ```yaml
 type: custom:slide-toggle-card
-layout: horizontal
-sliders:
-  - name: Front Door
-    icon: mdi:door
-    target_entity: lock.front_door
-    left_state: locked
-    right_state: unlocked
-    left_text: Slide to Unlock
-    right_text: Slide to Lock
-    left_icon: mdi:lock
-    right_icon: mdi:lock-open
-    slide_right_action:
-      action: call-service
-      service: lock.unlock
-      target:
-        entity_id: lock.front_door
-    slide_left_action:
-      action: call-service
-      service: lock.lock
-      target:
-        entity_id: lock.front_door
-
-  - name: Back Door
-    icon: mdi:door-sliding
-    target_entity: lock.back_door
-    left_state: locked
-    right_state: unlocked
-    left_text: Slide to Unlock
-    right_text: Slide to Lock
-    left_icon: mdi:lock
-    right_icon: mdi:lock-open
-    slide_right_action:
-      action: call-service
-      service: lock.unlock
-      target:
-        entity_id: lock.back_door
-    slide_left_action:
-      action: call-service
-      service: lock.lock
-      target:
-        entity_id: lock.back_door
+name: Heating Mode
+icon: mdi:thermostat
+target_entity: select.heating_mode
+layout: vertical
+left_state: Cool
+right_state: Heat
+left_text: Slide to Heat
+right_text: Slide to Cool
+left_icon: mdi:snowflake
+right_icon: mdi:fire
+unknown_icon: mdi:thermostat-auto
+unknown_state: disabled
+slide_right_service: select.select_option
+slide_right_entity: select.heating_mode
+slide_right_data: '{"option": "Heat"}'
+slide_left_service: select.select_option
+slide_left_entity: select.heating_mode
+slide_left_data: '{"option": "Cool"}'
 ```
+
+### Multiple Sliders
+
+Want multiple sliders? Add multiple cards — HA's grid and stack layouts handle this natively.
 
 ## How It Works
 
-1. **Entity state determines slider position** — when HA reports the entity state, the knob animates to the correct side (left for `left_state`, right for `right_state`, middle for anything else).
+1. **Entity state determines slider position** — when HA reports the entity state, the knob moves to the correct side (left for `left_state`, right for `right_state`, middle for anything else).
 
-2. **Sliding triggers actions** — slide the knob 75% of the way across to trigger the corresponding action. If you don't slide far enough, it snaps back.
+2. **Sliding triggers actions** — slide the knob 75% of the way across to trigger the corresponding service call. If you don't slide far enough, it snaps back.
 
 3. **Unknown states** — if the entity reports a state that doesn't match `left_state` or `right_state`, the knob sits in the middle. With `unknown_state: disabled`, the slider is greyed out. With `unknown_state: enabled`, you can still slide in either direction — the knob will hold at the end for a moment then slide back to the middle.
 
-4. **Visual feedback** — a fill bar follows the knob in known states (hidden in unknown state). The header icon in vertical layout changes to match the current state icon and turns blue when in the right state.
+4. **Visual feedback** — a fill bar follows the knob in known states (hidden in unknown state). In vertical layout, the header icon changes to match the current state icon and turns blue when in the right state.
+
+## Development
+
+The card is written in plain JavaScript with no build step. The version is logged to the browser console on load — look for `SLIDE-TOGGLE-CARD v0.5.0`.
 
 ## License
 
